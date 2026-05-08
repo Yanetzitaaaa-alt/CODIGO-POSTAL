@@ -6,7 +6,6 @@
     <title>Código Postal</title>
 
     <style>
-
         body {
             font-family: Arial, sans-serif;
             background: #f2f2f2;
@@ -14,8 +13,8 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            margin: 0;
         }
-
         .container {
             background: white;
             padding: 25px;
@@ -23,38 +22,33 @@
             width: 400px;
             box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
         }
-
         h1, h2 {
             text-align: center;
         }
-
         label {
             display: block;
             margin-top: 15px;
         }
-
         input, button {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
+            box-sizing: border-box;
         }
-
         small {
             color: gray;
         }
-
         button {
             background: #007bff;
             color: white;
             border: none;
             margin-top: 20px;
             cursor: pointer;
+            border-radius: 5px;
         }
-
         button:hover {
             background: #0056b3;
         }
-
         .resultado {
             margin-top: 20px;
             padding: 15px;
@@ -62,21 +56,25 @@
             border-radius: 5px;
             background: #f9f9f9;
         }
-
+        ul {
+            padding-left: 20px;
+        }
+        .borrar {
+            background: #dc3545;
+            margin-top: 10px;
+        }
+        .borrar:hover {
+            background: #a71d2a;
+        }
     </style>
-
 </head>
 
 <body>
-
     <div class="container">
-
         <h1>Formulario Código Postal</h1>
-
-        <form>
-
+        
+        <form id="formCP">
             <label for="cp">Código Postal:</label>
-
             <input 
                 type="text"
                 id="cp"
@@ -85,23 +83,80 @@
                 placeholder="Ejemplo: 12345"
                 required
             >
-
             <small>Debe contener exactamente 5 números.</small>
-
-            <button type="submit">Enviar</button>
-
+            <button type="submit">Guardar</button>
         </form>
 
         <!-- RESULTADO -->
         <div class="resultado">
-
-            <h2>Resultado</h2>
-
-            <p><strong>Código Postal ingresado:</strong> 12345</p>
-
+            <h2>Registros Guardados</h2>
+            <ul id="listaCP"></ul>
+            <button class="borrar" id="btnBorrar">Borrar todos</button>
         </div>
-
     </div>
 
+    <script>
+        const form = document.getElementById('formCP');
+        const inputCP = document.getElementById('cp');
+        const listaCP = document.getElementById('listaCP');
+        const btnBorrar = document.getElementById('btnBorrar');
+
+        // Cargar registros al abrir la página
+        document.addEventListener('DOMContentLoaded', mostrarRegistros);
+
+        // Guardar al enviar form
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const cp = inputCP.value;
+            
+            // Validar con pattern por si el navegador no lo hace
+            if (!/^[0-9]{5}$/.test(cp)) {
+                alert('El código postal debe tener exactamente 5 números');
+                return;
+            }
+
+            // Obtener registros existentes
+            let registros = JSON.parse(localStorage.getItem('codigosPostales')) || [];
+            
+            // Agregar nuevo con fecha
+            registros.push({
+                codigo: cp,
+                fecha: new Date().toLocaleString('es-MX')
+            });
+            
+            // Guardar en localStorage
+            localStorage.setItem('codigosPostales', JSON.stringify(registros));
+            
+            // Limpiar input y actualizar lista
+            inputCP.value = '';
+            mostrarRegistros();
+        });
+
+        // Función para mostrar todos los registros
+        function mostrarRegistros() {
+            const registros = JSON.parse(localStorage.getItem('codigosPostales')) || [];
+            listaCP.innerHTML = '';
+            
+            if (registros.length === 0) {
+                listaCP.innerHTML = '<li>No hay registros aún</li>';
+                return;
+            }
+            
+            registros.reverse().forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${item.codigo}</strong> - <small>${item.fecha}</small>`;
+                listaCP.appendChild(li);
+            });
+        }
+
+        // Borrar todos los registros
+        btnBorrar.addEventListener('click', function() {
+            if (confirm('¿Seguro que quieres borrar todos los registros?')) {
+                localStorage.removeItem('codigosPostales');
+                mostrarRegistros();
+            }
+        });
+    </script>
 </body>
 </html>
